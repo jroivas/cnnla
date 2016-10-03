@@ -1,8 +1,9 @@
 #!/usr/bin/env python
+import copy
 import string
 import sys
 
-class Node:
+class Node(object):
     def __init__(self, name, value=0):
         self.name = name
         self.value = value
@@ -14,13 +15,16 @@ class Node:
             self.value = self.queue[0]
             self.queue = self.queue[1:]
 
-    def getValue(self):
+    def _getValue(self):
         if not self.initted:
             self.dequeue()
             self.initted = True
         r = self.value
         self.dequeue()
         return r
+
+    def getValue(self):
+        return self._getValue()
 
     def setValue(self, f):
         self.queue.append(f)
@@ -39,6 +43,7 @@ class Node:
 
     def divValue(self, f):
         v = self.solveValue(f)
+        self.value = self.getValue()
         if v == 0:
             self.value = 0
         else:
@@ -59,12 +64,52 @@ class StdNode(Node):
         else:
             sys.stdout.write(f)
 
+class BlockNode(Node):
+    """
+    def __init__(self, name, value=0):
+        super(BlockNode, self).__init__(name, value)
+
+    """
+    def setCode(self, f):
+        self.code = f
+
+    def setEnv(self, env):
+        #self.env = env
+        self.env = {}
+
+    def setInterpret(self, intp):
+        self.intp = intp
+
+    def setBlocks(self, b):
+        self.blocks = b
+
+    def reset(self):
+        self.env = {}
+
+    def setValue(self, v):
+        #env = copy.deepcopy(self.env)
+        env = self.env
+        #env['in'] = Node('in', self._getValue())
+        env['in'] = Node('in', v)
+        #print 'INP %s' % env['in']
+        env['out'] = Node('out', 0)
+        self.intp(self.code, env, self.blocks)
+        #self.env = env
+        #print ' OO %s ' % env
+        #self.queue = env['out'].getValue()
+        self.value = env['out'].getValue()
+        #self.queue.append(env['out'].getValue())
+        #print ' SS %s ' % self
+
+
+
 def readfile(fname):
     with open(fname, 'r') as fd:
         return [x.strip() for x in fd.readlines()]
     return []
 
 def solveLeft(l):
+    l = l.strip()
     if not l:
         raise ValueError('Invalid empty left value')
     if l[0] == '\'':
@@ -101,7 +146,7 @@ def parseLine(line):
             return None
         elif ret and c == '-':
             tmp += c
-        elif ret:
+        elif ret and c != ' ' and c != '\t':
             items[stock] = tmp
             stock = 'right'
             tmp = c
@@ -144,10 +189,13 @@ def parseLine(line):
         p += 1
     items[stock] = tmp
     try:
-        items['left'] = solveLeft(items['left'])
+        if items['oper'] != '<-' and not items['collection']:
+            items['left'] = solveLeft(items['left'])
     except:
         print ('ERROR: %s' % items)
         sys.exit(2)
+
+    items['right'] = items['right'].strip()
     return items
 
 def parse(data):
@@ -158,10 +206,34 @@ def parse(data):
             code.append(r)
     return code
 
-def interpret(code, env):
+def interpret(code, env, blocks, verb=False):
+    collecting = ''
     for c in code:
         r = None
         l = None
+        if verb:
+            sys.stderr.write("%s\n" % c)
+
+        if c['collection']:
+            if c['collection'] == '@':
+                l = c['left']
+                collecting = l
+                if not collecting in blocks:
+                    blocks[collecting] = []
+                if l not in env:
+                    env[l] = BlockNode(l)
+                    env[l].setEnv(env)
+                    env[l].setInterpret(interpret)
+                    env[l].setBlocks(blocks)
+            elif c['collection'] == '@@':
+                collecting = ''
+            else:
+                raise ValueError('Invalid collection: %s' % c['collection'])
+            continue
+        elif collecting:
+            blocks[collecting].append(c)
+            env[collecting].setCode(blocks[collecting])
+            continue
 
         if type(c['left']) == int:
             l = Node('', c['left'])
@@ -177,6 +249,9 @@ def interpret(code, env):
             r = env[r]
 
         if c['oper'] == '->':
+            if verb:
+                print '%s = %s %s' % (r.name, l.name, l)
+                print '%s = %s' % (r.name, l.getValue())
             r.setValue(l.getValue())
         elif c['oper'] == '-!>':
             r.setValue(chr(l.getValue()))
@@ -190,9 +265,12 @@ def interpret(code, env):
             r.setValue(int(l.getValue()))
         elif c['oper'] == '-|>' and not c['right']:
             l.reset()
+        elif c['oper'] == '<-' and c['right']:
+            env['out'] = Node('out', r.getValue())
         else:
             raise ValueError('Invalid operator: %s in %s %s %s' % (c['oper'], c['left'], c['oper'], c['right']))
-        #sys.stderr.write("%s\n" % env)
+        #if verb:
+        #    sys.stderr.write("%s\n" % env)
 
 def defaultEnv():
     return {
@@ -207,7 +285,7 @@ def esola():
 
     data = readfile(sys.argv[1])
     code = parse(data)
-    interpret(code, env=defaultEnv())
+    interpret(code, env=defaultEnv(), blocks={})
 
 if __name__ == '__main__':
     esola()

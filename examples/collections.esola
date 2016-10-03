@@ -12,6 +12,7 @@
 9 -> average
 10 -> average
 average -> stdout
+'\n' -!> stdout
 
 # Ground
 average -|>
@@ -19,3 +20,5 @@ average -|>
 9 -> average
 10 -> average
 average -> stdout
+
+'\n' -!> stdout
