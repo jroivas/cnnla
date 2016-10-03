@@ -43,7 +43,7 @@ class Node(object):
 
     def divValue(self, f):
         v = self.solveValue(f)
-        self.value = self.getValue()
+        d = self.getValue()
         if v == 0:
             self.value = 0
         else:
@@ -65,11 +65,6 @@ class StdNode(Node):
             sys.stdout.write(f)
 
 class BlockNode(Node):
-    """
-    def __init__(self, name, value=0):
-        super(BlockNode, self).__init__(name, value)
-
-    """
     def setCode(self, f):
         self.code = f
 
@@ -87,21 +82,11 @@ class BlockNode(Node):
         self.env = {}
 
     def setValue(self, v):
-        #env = copy.deepcopy(self.env)
         env = self.env
-        #env['in'] = Node('in', self._getValue())
-        env['in'] = Node('in', v)
-        #print 'INP %s' % env['in']
-        env['out'] = Node('out', 0)
-        self.intp(self.code, env, self.blocks)
-        #self.env = env
-        #print ' OO %s ' % env
-        #self.queue = env['out'].getValue()
-        self.value = env['out'].getValue()
-        #self.queue.append(env['out'].getValue())
-        #print ' SS %s ' % self
-
-
+        self.env['in'] = Node('in', v)
+        self.env['out'] = Node('out', 0)
+        self.intp(self.code, self.env, self.blocks, verb=False)
+        self.value = self.env['out'].getValue()
 
 def readfile(fname):
     with open(fname, 'r') as fd:
@@ -253,6 +238,8 @@ def interpret(code, env, blocks, verb=False):
                 print '%s = %s %s' % (r.name, l.name, l)
                 print '%s = %s' % (r.name, l.getValue())
             r.setValue(l.getValue())
+            if verb:
+                print '%s = %s' % (r.name, r)
         elif c['oper'] == '-!>':
             r.setValue(chr(l.getValue()))
         elif c['oper'] == '-+>':
