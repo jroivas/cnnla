@@ -1,0 +1,13 @@
+'H' -!> stdout
+'e' -!> stdout
+'l' -!> stdout
+'l' -!> stdout
+'o' -!> stdout
+' ' -!> stdout
+'W' -!> stdout
+'o' -!> stdout
+'r' -!> stdout
+'l' -!> stdout
+'d' -!> stdout
+'!' -!> stdout
+'\n' -!> stdout
