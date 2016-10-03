@@ -73,7 +73,7 @@ def parseLine(line):
     stock = 'left'
     for c in line:
         if c == '#':
-            break
+            return None
         elif ret and c == '-':
             tmp += c
         elif ret:
@@ -118,13 +118,19 @@ def parseLine(line):
             raise ValueError('Invalid input %s at %s ("%s")' % (line, p, c))
         p += 1
     items[stock] = tmp
-    items['left'] = solveLeft(items['left'])
+    try:
+        items['left'] = solveLeft(items['left'])
+    except:
+        print 'ERROR: %s' % items
+        sys.exit(2)
     return items
 
 def parse(data):
     code = []
     for line in data:
-        code.append(parseLine(line))
+        r = parseLine(line)
+        if r is not None:
+            code.append(r)
     return code
 
 def interpret(code, env):
@@ -147,8 +153,10 @@ def interpret(code, env):
 
         if c['oper'] == '->':
             r.setValue(l.getValue())
-        if c['oper'] == '-!>':
+        elif c['oper'] == '-!>':
             r.setValue(chr(l.getValue()))
+        elif c['oper'] == '-->':
+            r.setValue(int(l.getValue()))
 
 def defaultEnv():
     return {

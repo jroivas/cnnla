@@ -1,10 +1,21 @@
-10 -> A
+68 -> A
 
 # Basic
 A -> stdout
 
+' ' -!> stdout
+
 # Numeris presentation as signed
 A --> stdout
 
+' ' -!> stdout
+
 # Character representation of lowest 8 bits
 A -!> stdout
+
+' ' -!> stdout
+
+# Stderr
+A -!> stderr
+
+'\n' -!> stdout
