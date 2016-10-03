@@ -107,6 +107,9 @@ def solveLeft(l):
             raise ValueError('Invalid input: %s' % l)
         return ord(v)
 
+    if len(l) >= 3 and l[0:2] == '0x':
+        return int(l, 16)
+
     if l[0] == '-' or l[0].isdigit():
         return int(l)
 
@@ -233,7 +236,9 @@ def interpret(code, env, blocks, verb=False):
                 env[r] = Node(r)
             r = env[r]
 
-        if c['oper'] == '->':
+        if not c['oper']:
+            pass
+        elif c['oper'] == '->':
             if verb:
                 print '%s = %s %s' % (r.name, l.name, l)
                 print '%s = %s' % (r.name, l.getValue())
