@@ -25,6 +25,31 @@ class Node:
     def setValue(self, f):
         self.queue.append(f)
 
+    def solveValue(self, f):
+        if type(f) == int:
+            return f
+        else:
+            return ord(f)
+
+    def addValue(self, f):
+        self.value += self.solveValue(f)
+
+    def mulValue(self, f):
+        self.value *= self.solveValue(f)
+
+    def divValue(self, f):
+        v = self.solveValue(f)
+        if v == 0:
+            self.value = 0
+        else:
+            self.value /= v
+
+    def reset(self):
+        self.value = 0
+
+    def __repr__(self):
+        return '<Node: %s, value: %s, queue: %s>' % (self.name, self.value, len(self.queue))
+
 class StdNode(Node):
     def setValue(self, f):
         if type(f) != 'str':
@@ -121,7 +146,7 @@ def parseLine(line):
     try:
         items['left'] = solveLeft(items['left'])
     except:
-        print 'ERROR: %s' % items
+        print ('ERROR: %s' % items)
         sys.exit(2)
     return items
 
@@ -155,8 +180,19 @@ def interpret(code, env):
             r.setValue(l.getValue())
         elif c['oper'] == '-!>':
             r.setValue(chr(l.getValue()))
+        elif c['oper'] == '-+>':
+            r.addValue(l.getValue())
+        elif c['oper'] == '-*>':
+            r.mulValue(l.getValue())
+        elif c['oper'] == '-/>':
+            r.divValue(l.getValue())
         elif c['oper'] == '-->':
             r.setValue(int(l.getValue()))
+        elif c['oper'] == '-|>' and not c['right']:
+            l.reset()
+        else:
+            raise ValueError('Invalid operator: %s in %s %s %s' % (c['oper'], c['left'], c['oper'], c['right']))
+        #sys.stderr.write("%s\n" % env)
 
 def defaultEnv():
     return {

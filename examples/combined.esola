@@ -6,13 +6,18 @@ A -!> stdout
 A -!> stdout
 A -!> stdout
 
+'\n' -!> stdout
+
+A -|>
 1 -+> A
 2 -+> A
 5 -+> A
 
 A -> stdout
+'\n' -!> stdout
 
-2 -*> A
-2 -/> A
+5 -*> A
+3 -/> A
 
 A -> stdout
+'\n' -!> stdout
