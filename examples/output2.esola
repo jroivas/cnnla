@@ -1,0 +1,10 @@
+10 -> A
+
+# Basic
+A -> stdout
+
+# Numeris presentation as signed
+A --> stdout
+
+# Character representation of lowest 8 bits
+A -!> stdout

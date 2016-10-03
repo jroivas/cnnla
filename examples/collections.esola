@@ -1,0 +1,21 @@
+@average
+  # `in` is reserved keyword in collection
+  in -+> A
+  1 -+> N
+  A -> R
+  N -/> R
+  <- R
+@@
+
+1 -> average
+6 -> average
+9 -> average
+10 -> average
+average -> stdout
+
+# Ground
+average -|>
+
+9 -> average
+10 -> average
+average -> stdout

@@ -1,0 +1,18 @@
+'A' -> A
+'B' -> A
+'C' -> A
+
+A -!> stdout
+A -!> stdout
+A -!> stdout
+
+1 -+> A
+2 -+> A
+5 -+> A
+
+A -> stdout
+
+2 -*> A
+2 -/> A
+
+A -> stdout
