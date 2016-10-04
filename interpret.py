@@ -3,6 +3,15 @@ import copy
 import string
 import sys
 
+def defaultEnv():
+    return {
+        'nodes': {
+            'stdout': StdNode('stdout'),
+            'stderr': StdNode('stderr'),
+        },
+        'blocks': {}
+    }
+
 class Node(object):
     def __init__(self, name, value=0):
         self.name = name
@@ -65,28 +74,24 @@ class StdNode(Node):
             sys.stdout.write(f)
 
 class BlockNode(Node):
+    def __init__(self, name, value=0):
+        super(BlockNode, self).__init__(name, value)
+        self.reset()
+
     def setCode(self, f):
         self.code = f
-
-    def setEnv(self, env):
-        #self.env = env
-        self.env = {}
 
     def setInterpret(self, intp):
         self.intp = intp
 
-    def setBlocks(self, b):
-        self.blocks = b
-
     def reset(self):
-        self.env = {}
+        self.env = defaultEnv()
 
     def setValue(self, v):
-        env = self.env
-        self.env['in'] = Node('in', v)
-        self.env['out'] = Node('out', 0)
-        self.intp(self.code, self.env, self.blocks, verb=False)
-        self.value = self.env['out'].getValue()
+        self.env['nodes']['in'] = Node('in', v)
+        self.env['nodes']['out'] = Node('out', 0)
+        self.intp(self.code, self.env, verb=False)
+        self.value = self.env['nodes']['out'].getValue()
 
 def readfile(fname):
     with open(fname, 'r') as fd:
@@ -194,7 +199,10 @@ def parse(data):
             code.append(r)
     return code
 
-def interpret(code, env, blocks, verb=False):
+def define(code, env):
+    pass
+
+def interpret(code, env, verb=False):
     collecting = ''
     for c in code:
         r = None
@@ -206,35 +214,33 @@ def interpret(code, env, blocks, verb=False):
             if c['collection'] == '@':
                 l = c['left']
                 collecting = l
-                if not collecting in blocks:
-                    blocks[collecting] = []
-                if l not in env:
-                    env[l] = BlockNode(l)
-                    env[l].setEnv(env)
-                    env[l].setInterpret(interpret)
-                    env[l].setBlocks(blocks)
+                if not collecting in env['blocks']:
+                    env['blocks'][collecting] = []
+                if l not in env['nodes']:
+                    env['nodes'][l] = BlockNode(l)
+                    env['nodes'][l].setInterpret(interpret)
             elif c['collection'] == '@@':
                 collecting = ''
             else:
                 raise ValueError('Invalid collection: %s' % c['collection'])
             continue
         elif collecting:
-            blocks[collecting].append(c)
-            env[collecting].setCode(blocks[collecting])
+            env['blocks'][collecting].append(c)
+            env['nodes'][collecting].setCode(env['blocks'][collecting])
             continue
 
         if type(c['left']) == int:
             l = Node('', c['left'])
         else:
             l = c['left']
-            if l not in env:
-                env[l] = Node(l)
-            l = env[l]
+            if l not in env['nodes']:
+                env['nodes'][l] = Node(l)
+            l = env['nodes'][l]
         if c['right']:
             r = c['right']
-            if r not in env:
-                env[r] = Node(r)
-            r = env[r]
+            if r not in env['nodes']:
+                env['nodes'][r] = Node(r)
+            r = env['nodes'][r]
 
         if not c['oper']:
             pass
@@ -258,17 +264,11 @@ def interpret(code, env, blocks, verb=False):
         elif c['oper'] == '-|>' and not c['right']:
             l.reset()
         elif c['oper'] == '<-' and c['right']:
-            env['out'] = Node('out', r.getValue())
+            env['nodes']['out'] = Node('out', r.getValue())
         else:
             raise ValueError('Invalid operator: %s in %s %s %s' % (c['oper'], c['left'], c['oper'], c['right']))
         #if verb:
         #    sys.stderr.write("%s\n" % env)
-
-def defaultEnv():
-    return {
-        'stdout': StdNode('stdout'),
-        'stderr': StdNode('stderr'),
-    }
 
 def esola():
     if len(sys.argv) <= 1:
@@ -277,7 +277,7 @@ def esola():
 
     data = readfile(sys.argv[1])
     code = parse(data)
-    interpret(code, env=defaultEnv(), blocks={})
+    interpret(code, env=defaultEnv())
 
 if __name__ == '__main__':
     esola()

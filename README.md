@@ -52,9 +52,11 @@ Same as a graph (if that makes any more sense):
     D--------|
 
 
+Connections are definitions, and permanent.
+
 ## Inputs
 
-Connections itself is boring, unless you can do something with them.
+Connections itself are boring, unless you can do something with them.
 Let's introduce inputs.
 
     'A' -> A
@@ -66,8 +68,10 @@ Simple as it is, input is special case of connection.
 Actually input is just feeding data to node.
 Input happens only once.
 
-When node has data, it may output it immediately.
-If there's more data coming to node, those feedings are blocked until current data is gone.
+When node has data, it may output it immediately to it's connections.
+Node itself keeps it's data until new data is feeded, or node is grounded.
+
+ XXX If there's more data coming to node, those feedings are blocked until current data is gone.
 
 
 ## Outputs
@@ -82,11 +86,13 @@ Since data in node can be in any format, simple formatters are supported:
     # Basic numeric representation
     A -> stdout
 
-    # Numeris presentation as signed
+    # Numeric presentation as signed int
     A --> stdout
 
     # Character representation of lowest 8 bits
     A -!> stdout
+
+Output connection is not permanent, but one time.
 
 ## Combined connections
 
@@ -112,11 +118,12 @@ Another useful feature is mul and divide:
 
 Minus operation is not supported.
 
+Combined connections are not permanent.
 
-# Collections
+# Blocks
 
-Of course we support collections.
-Collection is a set of connections, which are logically in same block.
+Of course we support blocks.
+Block is a set of connections, which are logically in same group.
 One could explain this as a method, but it's called for every input separately, saving it's state.
 
 
