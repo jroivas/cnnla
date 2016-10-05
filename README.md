@@ -83,10 +83,10 @@ Node can output data, usually `stdout` or `stderr`, which are special node names
 
 Since data in node can be in any format, simple formatters are supported:
 
-    # Basic numeric representation
+    # Basic numeric representation, permanent connection
     A -> stdout
 
-    # Numeric presentation as signed int
+    # Basic numeric representation, one time connection
     A --> stdout
 
     # Character representation of lowest 8 bits
@@ -145,7 +145,7 @@ Example usage:
     6 -> average
     9 -> average
     10 -> average
-    average -> stdout
+    average --> stdout
 
 Output would be `6`.
 
@@ -155,7 +155,7 @@ One can reset collection at any time with `ground` operator:
     6 -> average
     9 -> average
     10 -> average
-    average -> stdout
+    average --> stdout
 
     # Ground
     average -|>

@@ -1,16 +1,29 @@
 #!/usr/bin/env python
+import pprint
 import copy
 import string
 import sys
 
-def defaultEnv():
-    return {
+def defaultEnv(saved=[], ref={}):
+    res = {
         'nodes': {
             'stdout': StdNode('stdout'),
             'stderr': StdNode('stderr'),
         },
-        'blocks': {}
+        'blocks': {},
+        'connections': []
     }
+    for n in res:
+        if n == saved:
+            res[n] = ref[n]
+    return res
+
+def cleanEnv(env={}, clean=[]):
+    res = copy.deepcopy(env)
+    for n in res:
+        if n in clean:
+            res[n] = {}
+    return res
 
 class Node(object):
     def __init__(self, name, value=0):
@@ -36,6 +49,9 @@ class Node(object):
         return self._getValue()
 
     def setValue(self, f):
+        if type(f) == 'str':
+            f = ord(f)
+        #self.value = f
         self.queue.append(f)
 
     def solveValue(self, f):
@@ -76,7 +92,7 @@ class StdNode(Node):
 class BlockNode(Node):
     def __init__(self, name, value=0):
         super(BlockNode, self).__init__(name, value)
-        self.reset()
+        self.env = defaultEnv()
 
     def setCode(self, f):
         self.code = f
@@ -85,7 +101,7 @@ class BlockNode(Node):
         self.intp = intp
 
     def reset(self):
-        self.env = defaultEnv()
+        self.env = cleanEnv(self.env, ['nodes'])
 
     def setValue(self, v):
         self.env['nodes']['in'] = Node('in', v)
@@ -199,17 +215,11 @@ def parse(data):
             code.append(r)
     return code
 
-def define(code, env):
-    pass
-
-def interpret(code, env, verb=False):
+def buildnet(code, env):
+    new_code = []
     collecting = ''
-    for c in code:
-        r = None
-        l = None
-        if verb:
-            sys.stderr.write("%s\n" % c)
 
+    for c in code:
         if c['collection']:
             if c['collection'] == '@':
                 l = c['left']
@@ -220,6 +230,8 @@ def interpret(code, env, verb=False):
                     env['nodes'][l] = BlockNode(l)
                     env['nodes'][l].setInterpret(interpret)
             elif c['collection'] == '@@':
+                env['blocks'][collecting] = buildnet(env['blocks'][collecting], env['nodes'][collecting].env)
+                env['nodes'][collecting].setCode(env['blocks'][collecting])
                 collecting = ''
             else:
                 raise ValueError('Invalid collection: %s' % c['collection'])
@@ -229,46 +241,85 @@ def interpret(code, env, verb=False):
             env['nodes'][collecting].setCode(env['blocks'][collecting])
             continue
 
+        elif c['oper'] == '->':
+            if type(c['left']) == int:
+                new_code.append(c)
+            else:
+                if not c['right'] or not c['left']:
+                    raise ValueError('Indvalid connecion: %s -> %s' % (c['left'], c['right']))
+                env['connections'].append((c['left'], c['right']))
+        else:
+            new_code.append(c)
+
+    return new_code
+
+def evaluate(env, val, verb=False):
+    for a, b in env['connections']:
+        if a != val:
+            continue
+
+        if a not in env['nodes']:
+            env['nodes'][a] = Node(a)
+        if b not in env['nodes']:
+            env['nodes'][b] = Node(b)
+        env['nodes'][b].setValue(env['nodes'][a].getValue())
+        if verb:
+            print '%s = %s (%s)' % (b, a, env['nodes'][a].getValue())
+
+def interpret(code, env, verb=False):
+    collecting = ''
+    for c in code:
+        r = None
+        l = None
+        lname = ''
+        rname = ''
+        l_instant = False
+        if verb:
+            sys.stderr.write("%s\n" % c)
+
         if type(c['left']) == int:
+            l_instant = True
             l = Node('', c['left'])
         else:
-            l = c['left']
-            if l not in env['nodes']:
-                env['nodes'][l] = Node(l)
-            l = env['nodes'][l]
+            lname = c['left']
+            if lname not in env['nodes']:
+                env['nodes'][lname] = Node(lname)
+            l = env['nodes'][lname]
         if c['right']:
-            r = c['right']
-            if r not in env['nodes']:
-                env['nodes'][r] = Node(r)
-            r = env['nodes'][r]
+            rname = c['right']
+            if rname not in env['nodes']:
+                env['nodes'][rname] = Node(rname)
+            r = env['nodes'][rname]
 
         if not c['oper']:
             pass
         elif c['oper'] == '->':
-            if verb:
-                print '%s = %s %s' % (r.name, l.name, l)
-                print '%s = %s' % (r.name, l.getValue())
-            r.setValue(l.getValue())
-            if verb:
-                print '%s = %s' % (r.name, r)
+            if l_instant:
+                r.setValue(l.getValue())
+                evaluate(env, rname, verb)
         elif c['oper'] == '-!>':
             r.setValue(chr(l.getValue()))
+            evaluate(env, rname, verb)
         elif c['oper'] == '-+>':
             r.addValue(l.getValue())
+            evaluate(env, rname, verb)
         elif c['oper'] == '-*>':
             r.mulValue(l.getValue())
+            evaluate(env, rname, verb)
         elif c['oper'] == '-/>':
             r.divValue(l.getValue())
+            evaluate(env, rname, verb)
         elif c['oper'] == '-->':
             r.setValue(int(l.getValue()))
+            evaluate(env, rname, verb)
         elif c['oper'] == '-|>' and not c['right']:
             l.reset()
+            if lname:
+                evaluate(env, lname, verb)
         elif c['oper'] == '<-' and c['right']:
             env['nodes']['out'] = Node('out', r.getValue())
         else:
             raise ValueError('Invalid operator: %s in %s %s %s' % (c['oper'], c['left'], c['oper'], c['right']))
-        #if verb:
-        #    sys.stderr.write("%s\n" % env)
 
 def esola():
     if len(sys.argv) <= 1:
@@ -277,7 +328,10 @@ def esola():
 
     data = readfile(sys.argv[1])
     code = parse(data)
-    interpret(code, env=defaultEnv())
+    env = defaultEnv()
+    code = buildnet(code, env)
+
+    interpret(code, env)
 
 if __name__ == '__main__':
     esola()

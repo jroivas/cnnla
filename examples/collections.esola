@@ -1,5 +1,5 @@
 @average
-  # `in` is reserved keyword in collection
+  # `in` is reserved keyword in block
   in -+> A
   1 -+> N
   A -> R
@@ -11,7 +11,7 @@
 6 -> average
 9 -> average
 10 -> average
-average -> stdout
+average --> stdout
 '\n' -!> stdout
 
 # Ground
@@ -19,6 +19,6 @@ average -|>
 
 9 -> average
 10 -> average
-average -> stdout
+average --> stdout
 
 '\n' -!> stdout

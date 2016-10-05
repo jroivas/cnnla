@@ -1,11 +1,12 @@
 68 -> A
 
-# Basic
-A -> stdout
+# Basic connetion, A always fields to `stdout`
+A --> stdout
 
+# Force space now
 ' ' -!> stdout
 
-# Numeris presentation as signed
+# Numeric presentation as signed
 A --> stdout
 
 ' ' -!> stdout
