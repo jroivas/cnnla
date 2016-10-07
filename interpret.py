@@ -317,12 +317,8 @@ def interpret(code, env, verb=False):
         else:
             raise ValueError('Invalid operator: %s in %s %s %s' % (c['oper'], c['left'], c['oper'], c['right']))
 
-def esola():
-    if len(sys.argv) <= 1:
-        print ('Usage: %s file.esola' % (sys.argv[0]))
-        sys.exit(1)
-
-    data = readfile(sys.argv[1])
+def cnnla(fname):
+    data = readfile(fname)
     code = parse(data)
     env = defaultEnv()
     code = buildnet(code, env)
@@ -330,4 +326,8 @@ def esola():
     interpret(code, env)
 
 if __name__ == '__main__':
-    esola()
+    if len(sys.argv) <= 1:
+        print ('Usage: %s file.cnnla' % (sys.argv[0]))
+        sys.exit(1)
+
+    cnnla(sys.argv[1])

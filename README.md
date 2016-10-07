@@ -1,7 +1,6 @@
-# Esola
+# Cnnla
 
-Esola is a esoteric programming language.
-Pronounced like "ebola"
+Cnnla ("connection esolang") is a esoteric programming language.
 
 
 ## Node
@@ -184,3 +183,7 @@ On this case B connection is executed, if 0 is connected to A, then C is execute
     1 -> A
     A -?> B
     A -?!> C
+
+## License
+
+MIT
