@@ -24,12 +24,12 @@ Everything is a connection between nodes.
 
 In base level connection from A to B can be represented as:
 
-   A -> B
+    A -> B
 
 One can easily make a loop:
 
-   A -> B
-   B -> A
+    A -> B
+    B -> A
 
 Or more complex structures:
 
@@ -69,8 +69,6 @@ Input happens only once.
 
 When node has data, it may output it immediately to it's connections.
 Node itself keeps it's data until new data is feeded, or node is grounded.
-
- XXX If there's more data coming to node, those feedings are blocked until current data is gone.
 
 
 ## Outputs
@@ -127,16 +125,16 @@ One could explain this as a method, but it's called for every input separately, 
 
 
     {average
-    # `in` is reserved keyword in collection
-    in -+> A
-    1 -+> N
-    A -> R
-    N -/> R
-    <- R
+        # `in` is reserved keyword in block
+        in -+> A
+        1 -+> N
+        A -> R
+        N -/> R
+        <- R
     }
 
-So syntax is: `@COLLECTION_NAME` and everything until `@@` will be included to the collection.
-Collection names are globally available.
+So syntax is: `{BLOCK_NAME` and everything until `}` will be included to the block.
+Block names are globally available.
 
 Example usage:
 
@@ -148,7 +146,7 @@ Example usage:
 
 Output would be `6`.
 
-One can reset collection at any time with `ground` operator:
+One can reset block at any time with `ground` operator:
 
     1 -> average
     6 -> average
