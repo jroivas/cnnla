@@ -306,12 +306,12 @@ def interpret(code, env, verb=False):
             v = int(l.getValue())
             if v:
                 r.setValue(v)
-            evaluate(env, rname, verb)
+                evaluate(env, rname, verb)
         elif c['oper'] == '-?!>':
             v = int(l.getValue())
             if not v:
                 r.setValue(v)
-            evaluate(env, rname, verb)
+                evaluate(env, rname, verb)
         elif c['oper'] == '-|>' and not c['right']:
             l.reset()
             if lname:
