@@ -4,8 +4,8 @@ import copy
 import string
 import sys
 
-def defaultEnv(saved=[], ref={}):
-    res = {
+def defaultEnv():
+    return {
         'nodes': {
             'stdout': StdNode('stdout'),
             'stderr': StdNode('stderr'),
@@ -13,44 +13,26 @@ def defaultEnv(saved=[], ref={}):
         'blocks': {},
         'connections': []
     }
-    return res
 
-def cleanEnv(env={}):
-    res = defaultEnv()
-    res['connections'] = copy.deepcopy(env['connections'])
-    res['blocks'] = copy.deepcopy(env['blocks'])
-    for n in env['blocks']:
-        res['nodes'][n] = copy.deepcopy(env['nodes'][n])
-    return res
+def mergeEnv(env, src={}):
+    for b in src['blocks']:
+        env['blocks'][b] = copy.deepcopy(src['blocks'][b])
+    for b in src['nodes']:
+        env['nodes'][b] = copy.deepcopy(src['nodes'][b])
 
 class Node(object):
     def __init__(self, name, value=0):
         self.name = name
         self.value = value
-        self.queue = []
         self.initted = False
 
-    def dequeue(self):
-        if self.queue:
-            self.value = self.queue[0]
-            self.queue = self.queue[1:]
-
-    def _getValue(self):
-        if not self.initted:
-            self.dequeue()
-            self.initted = True
-        r = self.value
-        self.dequeue()
-        return r
-
     def getValue(self):
-        return self._getValue()
+        return self.value
 
     def setValue(self, f):
         if type(f) == 'str':
             f = ord(f)
         self.value = f
-        #self.queue.append(f)
 
     def solveValue(self, f):
         if type(f) == int:
@@ -76,7 +58,7 @@ class Node(object):
         self.value = 0
 
     def __repr__(self):
-        return '<Node: %s, value: %s, queue: %s>' % (self.name, self.value, len(self.queue))
+        return '<Node: %s, value: %s>' % (self.name, self.value)
 
 class StdNode(Node):
     def setValue(self, f):
@@ -99,7 +81,7 @@ class BlockNode(Node):
         self.intp = intp
 
     def setEnv(self, env):
-        self.env = cleanEnv(env)
+        mergeEnv(self.env, env)
 
     def reset(self):
         self.setEnv(self.env)
@@ -228,7 +210,7 @@ def buildnet(code, env):
                 if not collecting in env['blocks']:
                     env['blocks'][collecting] = []
                 if l not in env['nodes']:
-                    env['nodes'][l] = BlockNode(l, env)
+                    env['nodes'][l] = BlockNode(l)
                     env['nodes'][l].setInterpret(interpret)
             elif c['collection'] == '}':
                 env['blocks'][collecting] = buildnet(env['blocks'][collecting], env['nodes'][collecting].env)
@@ -252,8 +234,8 @@ def buildnet(code, env):
         else:
             new_code.append(c)
 
-    #for b in env['blocks']:
-        #env['nodes'][b].setEnv(env)
+    for b in env['blocks']:
+        env['nodes'][b].setEnv(env)
 
     return new_code
 
