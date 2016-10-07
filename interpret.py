@@ -25,14 +25,18 @@ class Node(object):
         self.name = name
         self.value = value
         self.initted = False
+        self.queue = []
 
     def getValue(self):
+        if not self.initted and self.queue:
+            self.value = self.queue[0]
+            self.queue = self.queue[1:]
         return self.value
 
     def setValue(self, f):
         if type(f) == 'str':
             f = ord(f)
-        self.value = f
+        self.queue.append(f)
 
     def solveValue(self, f):
         if type(f) == int:

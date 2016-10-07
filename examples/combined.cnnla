@@ -13,11 +13,11 @@ A -|>
 2 -+> A
 5 -+> A
 
-A -> stdout
+A --> stdout
 '\n' -!> stdout
 
 5 -*> A
 3 -/> A
 
-A -> stdout
+A --> stdout
 '\n' -!> stdout
