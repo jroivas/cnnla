@@ -177,7 +177,7 @@ def parseLine(line):
             items[stock] = tmp
             stock = 'oper'
             tmp = c
-        elif tmp and stock == 'oper' and c in ['-', '+', '*', '/', '!', '|']:
+        elif tmp and stock == 'oper' and c in ['-', '+', '*', '/', '!', '|', '?']:
             tmp += c
         elif c == '<':
             items[stock] = tmp

@@ -1,0 +1,24 @@
+{ok
+  'O' --> stdout
+  'K' --> stdout
+  '\n' --> stdout
+}
+
+{fail
+  'F' --> stdout
+  'A' --> stdout
+  'I' --> stdout
+  'L' --> stdout
+  '\n' --> stdout
+}
+
+{check
+  in -?> ok
+  in -?!> fail
+}
+
+1 -> A
+A -> check
+
+0 -> A
+A -> check

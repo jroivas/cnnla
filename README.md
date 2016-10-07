@@ -174,3 +174,13 @@ Output would be:
 Comment is marked with hash `#` and lasts until end of line.
 Only one experssion per line.
 White space is insignificant otherwise.
+
+## Conditionals
+
+Basic conditionals are of course supported.
+
+On this case B connection is executed, if 0 is connected to A, then C is executed.
+
+    1 -> A
+    A -?> B
+    A -?!> C
