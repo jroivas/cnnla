@@ -1,15 +1,15 @@
 {ok
-  'O' --> stdout
-  'K' --> stdout
-  '\n' --> stdout
+  'O' -!> stdout
+  'K' -!> stdout
+  '\n' -!> stdout
 }
 
 {fail
-  'F' --> stdout
-  'A' --> stdout
-  'I' --> stdout
-  'L' --> stdout
-  '\n' --> stdout
+  'F' -!> stdout
+  'A' -!> stdout
+  'I' -!> stdout
+  'L' -!> stdout
+  '\n' -!> stdout
 }
 
 {check
@@ -17,8 +17,12 @@
   in -?!> fail
 }
 
-1 -> A
-A -> check
+1 --> A
+A -?> ok
+A -?!> fail
 
-0 -> A
-A -> check
+0 --> A
+A --> check
+
+1 --> A
+A --> check

@@ -13,16 +13,14 @@ def defaultEnv(saved=[], ref={}):
         'blocks': {},
         'connections': []
     }
-    for n in res:
-        if n == saved:
-            res[n] = ref[n]
     return res
 
-def cleanEnv(env={}, clean=[]):
-    res = copy.deepcopy(env)
-    for n in res:
-        if n in clean:
-            res[n] = {}
+def cleanEnv(env={}):
+    res = defaultEnv()
+    res['connections'] = copy.deepcopy(env['connections'])
+    res['blocks'] = copy.deepcopy(env['blocks'])
+    for n in env['blocks']:
+        res['nodes'][n] = copy.deepcopy(env['nodes'][n])
     return res
 
 class Node(object):
@@ -51,8 +49,8 @@ class Node(object):
     def setValue(self, f):
         if type(f) == 'str':
             f = ord(f)
-        #self.value = f
-        self.queue.append(f)
+        self.value = f
+        #self.queue.append(f)
 
     def solveValue(self, f):
         if type(f) == int:
@@ -100,8 +98,11 @@ class BlockNode(Node):
     def setInterpret(self, intp):
         self.intp = intp
 
+    def setEnv(self, env):
+        self.env = cleanEnv(env)
+
     def reset(self):
-        self.env = cleanEnv(self.env, ['nodes'])
+        self.setEnv(self.env)
 
     def setValue(self, v):
         self.env['nodes']['in'] = Node('in', v)
@@ -227,7 +228,7 @@ def buildnet(code, env):
                 if not collecting in env['blocks']:
                     env['blocks'][collecting] = []
                 if l not in env['nodes']:
-                    env['nodes'][l] = BlockNode(l)
+                    env['nodes'][l] = BlockNode(l, env)
                     env['nodes'][l].setInterpret(interpret)
             elif c['collection'] == '}':
                 env['blocks'][collecting] = buildnet(env['blocks'][collecting], env['nodes'][collecting].env)
@@ -251,6 +252,9 @@ def buildnet(code, env):
         else:
             new_code.append(c)
 
+    #for b in env['blocks']:
+        #env['nodes'][b].setEnv(env)
+
     return new_code
 
 def evaluate(env, val, verb=False):
@@ -264,7 +268,7 @@ def evaluate(env, val, verb=False):
             env['nodes'][b] = Node(b)
         env['nodes'][b].setValue(env['nodes'][a].getValue())
         if verb:
-            print '%s = %s (%s)' % (b, a, env['nodes'][a].getValue())
+            print ('%s = %s (%s)' % (b, a, env['nodes'][a].getValue()))
 
 def interpret(code, env, verb=False):
     collecting = ''
@@ -312,6 +316,16 @@ def interpret(code, env, verb=False):
         elif c['oper'] == '-->':
             r.setValue(int(l.getValue()))
             evaluate(env, rname, verb)
+        elif c['oper'] == '-?>':
+            v = int(l.getValue())
+            if v:
+                r.setValue(v)
+            evaluate(env, rname, verb)
+        elif c['oper'] == '-?!>':
+            v = int(l.getValue())
+            if not v:
+                r.setValue(v)
+            evaluate(env, rname, verb)
         elif c['oper'] == '-|>' and not c['right']:
             l.reset()
             if lname:
@@ -323,7 +337,7 @@ def interpret(code, env, verb=False):
 
 def esola():
     if len(sys.argv) <= 1:
-        print 'Usage: %s file.esola' % (sys.argv[0])
+        print ('Usage: %s file.esola' % (sys.argv[0]))
         sys.exit(1)
 
     data = readfile(sys.argv[1])
