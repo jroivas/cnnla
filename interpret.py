@@ -188,10 +188,10 @@ def parseLine(line):
             items[stock] = tmp + c
             stock = 'right'
             tmp = ''
-        elif c == '@' and not items['collection']:
-            items['collection'] = '@'
-        elif c == '@' and items['collection'] == '@':
-            items['collection'] = '@@'
+        elif c == '{' and not items['collection']:
+            items['collection'] = '{'
+        elif c == '}':
+            items['collection'] = '}'
         else:
             print 'STOCK %s' % stock
             raise ValueError('Invalid input %s at %s ("%s")' % (line, p, c))
@@ -221,7 +221,7 @@ def buildnet(code, env):
 
     for c in code:
         if c['collection']:
-            if c['collection'] == '@':
+            if c['collection'] == '{':
                 l = c['left']
                 collecting = l
                 if not collecting in env['blocks']:
@@ -229,7 +229,7 @@ def buildnet(code, env):
                 if l not in env['nodes']:
                     env['nodes'][l] = BlockNode(l)
                     env['nodes'][l].setInterpret(interpret)
-            elif c['collection'] == '@@':
+            elif c['collection'] == '}':
                 env['blocks'][collecting] = buildnet(env['blocks'][collecting], env['nodes'][collecting].env)
                 env['nodes'][collecting].setCode(env['blocks'][collecting])
                 collecting = ''

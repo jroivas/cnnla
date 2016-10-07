@@ -1,11 +1,11 @@
-@average
+{average
   # `in` is reserved keyword in block
   in -+> A
   1 -+> N
   A -> R
   N -/> R
   <- R
-@@
+}
 
 1 -> average
 6 -> average

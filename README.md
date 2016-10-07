@@ -127,14 +127,14 @@ Block is a set of connections, which are logically in same group.
 One could explain this as a method, but it's called for every input separately, saving it's state.
 
 
-    @average
+    {average
     # `in` is reserved keyword in collection
     in -+> A
     1 -+> N
     A -> R
     N -/> R
     <- R
-    @@
+    }
 
 So syntax is: `@COLLECTION_NAME` and everything until `@@` will be included to the collection.
 Collection names are globally available.
@@ -172,4 +172,5 @@ Output would be:
 ## Comments and white space
 
 Comment is marked with hash `#` and lasts until end of line.
+Only one experssion per line.
 White space is insignificant otherwise.
