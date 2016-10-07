@@ -182,6 +182,23 @@ On this case B connection is executed, if 0 is connected to A, then C is execute
     A -?> B
     A -?!> C
 
+### Looping
+
+Looping is special case of conditional. It received feedback value.
+It's scary easy to make broken loops!
+
+Example:
+
+    {loop_func
+        in --> stdout
+        in --> V
+        -1 -+> V
+        <- V
+    }
+
+    10 -> N
+    N -?@> loop_func
+
 ## License
 
 MIT

@@ -45,10 +45,10 @@ class Node(object):
             return ord(f)
 
     def addValue(self, f):
-        self.value += self.solveValue(f)
+        self.value = self.getValue() + self.solveValue(f)
 
     def mulValue(self, f):
-        self.value *= self.solveValue(f)
+        self.value = self.getValue() * self.solveValue(f)
 
     def divValue(self, f):
         v = self.solveValue(f)
@@ -93,6 +93,7 @@ class BlockNode(Node):
     def setValue(self, v):
         self.env['nodes']['in'] = Node('in', v)
         self.env['nodes']['out'] = Node('out', 0)
+        evaluate(self.env, None)
         self.intp(self.code, self.env, verb=False)
         self.value = self.env['nodes']['out'].getValue()
 
@@ -158,13 +159,13 @@ def parseLine(line):
             tmp += c
         elif c == ' ' or c == '\t':
             pass
-        elif (not tmp and c in string.letters + '-') or (c in string.letters + string.digits):
+        elif (not tmp and c in string.letters + '-' + '_') or (c in string.letters + string.digits + '_'):
             tmp += c
         elif tmp and c == '-' and stock == 'left':
             items[stock] = tmp
             stock = 'oper'
             tmp = c
-        elif tmp and stock == 'oper' and c in ['-', '+', '*', '/', '!', '|', '?']:
+        elif tmp and stock == 'oper' and c in ['-', '+', '*', '/', '!', '|', '?', '@']:
             tmp += c
         elif c == '<':
             items[stock] = tmp
@@ -245,7 +246,7 @@ def buildnet(code, env):
 
 def evaluate(env, val, verb=False):
     for a, b in env['connections']:
-        if a != val:
+        if val is not None and a != val:
             continue
 
         if a not in env['nodes']:
@@ -312,6 +313,11 @@ def interpret(code, env, verb=False):
             if not v:
                 r.setValue(v)
                 evaluate(env, rname, verb)
+        elif c['oper'] == '-?@>':
+            v = int(l.getValue())
+            while v > 0:
+                r.setValue(v)
+                v = r.getValue()
         elif c['oper'] == '-|>' and not c['right']:
             l.reset()
             if lname:

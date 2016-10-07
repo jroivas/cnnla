@@ -1,0 +1,10 @@
+{loop_func
+    in --> stdout
+    in --> V
+    -1 -+> V
+    <- V
+}
+
+10 -> N
+N -?@> loop_func
+'\n' -!> stdout
